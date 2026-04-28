@@ -1,10 +1,18 @@
 {
-    "deck_name": [],
-    "front_card_name": [],
-    "TTS_models": false,
-    "image_models": false,
-    "necessary_models": false,
-    "generate_images": false,
-    "generate_audio": false,
+    "deck_name": [
+        "It",
+        "Kaishi 1.5k Russian",
+        "Mining"
+    ],
+    "front_card_name": [
+        "Expression",
+        "Word",
+        "Expression"
+    ],
+    "TTS_models": true,
+    "image_models": true,
+    "necessary_models": true,
+    "generate_images": true,
+    "generate_audio": true,
     "offload_cpu": true
 }
