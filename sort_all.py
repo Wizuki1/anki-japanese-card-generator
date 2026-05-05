@@ -6,6 +6,11 @@ import gc
 import xgboost
 
 def give_n_best(valid_words: dict[str, list[str]], n):
+    """
+    This function ranks candidate words based on a trained XGBoost familiarity model
+    and returns the top n selections along with their originating sentences
+    """
+
     model = xgboost.XGBRegressor()
     model.load_model('model/xgb_model.json')
     max_familiarity = 2.356011
