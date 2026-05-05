@@ -3,6 +3,8 @@ import json
 from pydantic import BaseModel
 
 class CardOutput(BaseModel):
+    """Output structure"""
+    
     reading: str
     selected_meanings: list[str]
     example_jp: str
@@ -11,10 +13,12 @@ class CardOutput(BaseModel):
 
 
 def get_answer(word):
+    """Sends an LLM request and receives a response in json format"""
+
     response = ollama.chat(
         model='my-model',
 
-        format=CardOutput.model_json_schema(),  # Вот эта магия гарантирует JSON на выходе
+        format=CardOutput.model_json_schema(),
         messages=[
             {
                 'role': 'system',
@@ -38,7 +42,7 @@ JSON STRUCTURE & CONSTRAINTS:
         ],
         options={
             'stop': ['<|im_start|>', '<|im_end|>', 'User:', 'User'],
-            "temperature": 0.1  # Останавливаем модель, если она пошла "по кругу"
+            "temperature": 0.1
         }
     )
 
