@@ -9,6 +9,7 @@ lora_path = "model/memories-of-phantasm-style-noobai-vpred10-logit.safetensors"
 _pipe = None
 
 def get_sdxl_pipeline(offload_cpu: bool):
+    """Loads the model into the cache"""
     global _pipe
     if _pipe is None:
         _pipe = StableDiffusionXLPipeline.from_single_file(
@@ -24,7 +25,7 @@ def get_sdxl_pipeline(offload_cpu: bool):
 
 
 def image_generating(base_prompt: str, image_name: str, offload_cpu: bool):
-    """Generates pictures for the fleshcards, based on the """
+    """Generates pictures for the flashcards, based on the NoobAI model"""
     pipe = get_sdxl_pipeline(offload_cpu)
 
     quality_tags = "masterpiece, best quality, perfect quality, absurdres, newest, very aesthetic"
@@ -48,6 +49,7 @@ def image_generating(base_prompt: str, image_name: str, offload_cpu: bool):
 
 
 def unload_sdxl():
+    """Unloads the model from cache"""
     global _pipe
     if _pipe is not None:
         _pipe.to("cpu")
