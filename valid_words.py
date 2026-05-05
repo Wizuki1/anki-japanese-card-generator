@@ -3,6 +3,10 @@ import json
 import urllib.request
 
 def invoke(action, **params):
+    """
+    Sends a request to a locally running AnkiConnect server with the specified action and parameters
+    """
+
     payload = json.dumps({"action": action, "version": 6, "params": params}).encode('utf-8')
     response = json.load(urllib.request.urlopen(urllib.request.Request('http://localhost:8765', payload)))
     if response['error'] is not None:
@@ -11,6 +15,10 @@ def invoke(action, **params):
 
 
 def get_having_cards(deck_names: list[str], deck_front_side_names: list[str]):
+    """
+    For each deck name, finds all cards in decks whose names start with that term
+    """
+
     all_cards = set()
     for i in range(len(deck_names)):
         card_ids = invoke('findCards', query=f'deck:"{deck_names[i]}*"')
@@ -26,6 +34,11 @@ def get_having_cards(deck_names: list[str], deck_front_side_names: list[str]):
     return all_cards
 
 def valid_words(sentence: str, deck_names: list[str], deck_front_side_names: list[str]):
+    """
+    For each sentence, filters for words that are not already
+    present on any card’s front field and returns a list of missing words that would result in new cards
+    """
+
     tokenized = tokenize(sentence)
     all_cards = get_having_cards(deck_names, deck_front_side_names)
     result = {}
@@ -37,6 +50,11 @@ def valid_words(sentence: str, deck_names: list[str], deck_front_side_names: lis
     return result
 
 def get_deck_name_and_front_card_name():
+    """
+    Queries Anki for all deck names, dropping the last two entries, which are system decks.
+
+    For each deck, finds one card, inspects its first field, and assumes this is the front side’s field name
+    """
     decks = invoke("deckNames")[:-2]
     cards_front_names = []
     for deck in decks:
