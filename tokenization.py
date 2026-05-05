@@ -11,6 +11,8 @@ my_dict = LocalDictionary("EN-JP JMdict")
 japanese_pattern = re.compile(r'[\u3040-\u30FF\u4E00-\u9FFF]')
 
 def tokenize(text: str):
+    "Tokenizes the text"
+    
     words_in_context: dict[str, list[str]] = {}
     seen_words: set = set()
 
@@ -31,18 +33,18 @@ def tokenize(text: str):
 
 
 def filter_empty_fields(text):
+    """
+    Cleans up generated prompt strings by removing lines that have empty values after a colon
+    """
+
     filtered_lines = []
 
     for line in text.strip().split('\n'):
-        # Проверяем, есть ли в строке двоеточие
         if ':' in line:
-            # Разделяем на ключ и значение
             key, value = line.split(':', 1)
-            # Если после двоеточия есть что-то кроме пробелов — оставляем
             if value.strip():
                 filtered_lines.append(line)
         else:
-            # Если двоеточия нет, но строка не пустая — тоже оставляем
             if line.strip():
                 filtered_lines.append(line)
 
@@ -50,6 +52,11 @@ def filter_empty_fields(text):
 
 
 def get_surface(sentence: str, needed_word: str):
+    """
+    Tokenizes the provided sentence and returns thet surface form (the actual inflected form in context)
+    of the first occurrence of the specified dictionary form
+    """
+
     tokens = tokenizer_obj.tokenize(sentence, mode)
 
     for token in tokens:
@@ -60,12 +67,17 @@ def get_surface(sentence: str, needed_word: str):
 
 
 def get_japanese_pos(raw_tag):
+    """
+    Maps POS tags from a source format (e.g., “n”, “v1”, “v5k”)
+    to their Japanese label equivalents, handling a few special cases for verb classes
+    """
+
     exact_map = {
         'n': '名詞',
         'pn': '代名詞',
         'adv': '副詞',
-        'vt': '他動詞',  # Переходный
-        'vi': '自動詞',  # Непереходный
+        'vt': '他動詞',
+        'vi': '自動詞',
         'adj-na': 'な形容詞',
         'adj-i': 'い形容詞',
         'v1': '一段動詞',
@@ -74,7 +86,7 @@ def get_japanese_pos(raw_tag):
     if raw_tag.startswith('v5'):
         return '五段動詞'
     if raw_tag.startswith('v2'):
-        return '二段動詞 (文語)'  # Указываем, что это архаика (бунго)
+        return '二段動詞 (文語)'
     if raw_tag.startswith('vs'):
         return 'サ変動詞'
 
@@ -82,6 +94,11 @@ def get_japanese_pos(raw_tag):
 
 
 def process_word_types(raw_string):
+    """
+    Splits a combined POS string (“n・adj-i”) into individual tags,
+    converts each to the Japanese POS label, and returns a comma-separated string of the translated tags
+    """
+
     tags = raw_string.split('・')
     translated = [get_japanese_pos(tag) for tag in tags if get_japanese_pos(tag) != tag]
     if not translated:
@@ -89,6 +106,10 @@ def process_word_types(raw_string):
     return ', '.join(translated)
 
 def get_prompts(preprocessed_text: tuple[str]):
+    """
+    Builds a formatted prompt string describing the word, its reading, word type, meanings, and context sentence
+    """
+
     prompts = []
 
     for word, sentence in preprocessed_text:
