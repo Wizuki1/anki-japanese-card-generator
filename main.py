@@ -1,9 +1,6 @@
 import json
 import streamlit as st
 from connect_all import connect_all
-import os
-import signal
-import ollama._types
 
 with open('app_config.json', 'r', encoding='utf-8') as f:
     data = json.load(f)
@@ -78,12 +75,10 @@ with st.sidebar:
         st.success("Settings applied!")
 
 
-st.title("Main Interface - Please make sure Ollama and Anki with Anki Connect are running")
+st.title("Please make sure Ollama and Anki with Anki Connect are running")
 main_deck = st.text_input(label="Deck in which you want to add cards")
 
-
 user_text = st.text_area("Enter your text here:", height=200, placeholder="Start typing...")
-
 
 value = st.slider("Select value:", min_value=1, max_value=25, value=10)
 
