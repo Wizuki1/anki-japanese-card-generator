@@ -5,12 +5,15 @@ import re
 class LocalDictionary:
     def __init__(self, dict_folder_path):
         """
-        Инициализируем словарь, загружая все term_bank JSON файлы из папки в Hash Map.
+        Initialises the dictionary by loading all term_bank JSON files from the folder into a Hash Map
         """
         self.lookup_table = {}
         self.load_yomitan_dictionary(dict_folder_path)
 
     def load_yomitan_dictionary(self, folder_path):
+        """
+        Retrieves information from the dictionary and presents it in a use-friendly format
+        """
         folder = Path(folder_path)
         for file_path in folder.glob("term_bank_*.json"):
             with open(file_path, 'r', encoding='utf-8') as f:
@@ -27,10 +30,8 @@ class LocalDictionary:
                     text = re.sub(r'^(?:.*\n){2}', '', meanings[0])
                     text = re.sub(r'〘.*?〙', '', text)
 
-                    # 2. Заменяем все переносы строк на пробелы (чтобы слова не слиплись)
                     text = text.replace('\n', ' ')
 
-                    # 3. Убираем лишние пробелы по краям и двойные пробелы внутри
                     text = re.sub(r'\s+', ' ', text).strip()
                     text = text.replace(';', ',')
 
@@ -41,5 +42,4 @@ class LocalDictionary:
                     })
 
     def search(self, word):
-        """Возвращает данные о слове за O(1) или None, если не найдено."""
         return self.lookup_table.get(word, None)
