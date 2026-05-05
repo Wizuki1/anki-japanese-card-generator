@@ -7,6 +7,7 @@ import gc
 _MODEL_INSTANCE = None
 
 def get_labse_model():
+    "Loads the model into the cache"
     global _MODEL_INSTANCE
     if _MODEL_INSTANCE is None:
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -15,7 +16,7 @@ def get_labse_model():
 
 def get_best_meaning(target_word, context_sentence, jsons, weight_word=0.6, weight_context=0.4):
     """
-    Находит лучший перевод, учитывая вес самого слова и вес предложения.
+    It finds the best translation, taking into account the weight of the word itself and the weight of the sentence
     """
     model = get_labse_model()
     translations = get_meanings(jsons)
@@ -30,7 +31,6 @@ def get_best_meaning(target_word, context_sentence, jsons, weight_word=0.6, weig
 
     final_scores = (score_word * weight_word) + (score_context * weight_context)
 
-    # 5. Сортировка и вывод
     results = zip(translations, final_scores.tolist(), ids)
     sorted_results = sorted(results, key=lambda x: x[1], reverse=True)
 
@@ -40,6 +40,7 @@ def get_best_meaning(target_word, context_sentence, jsons, weight_word=0.6, weig
 
 
 def get_meanings(jsons):
+    """Get all meanings of the word"""
     meanings = []
     for json in jsons:
         meaning = json['meanings']
@@ -48,6 +49,7 @@ def get_meanings(jsons):
 
 
 def unload_labse_model():
+    "Unloads the model from the cache"
     global _MODEL_INSTANCE
     if _MODEL_INSTANCE is not None:
         _MODEL_INSTANCE.to('cpu')
