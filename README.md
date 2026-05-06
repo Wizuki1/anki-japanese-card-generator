@@ -30,7 +30,7 @@ https://github.com/user-attachments/assets/822116d3-11ce-499b-bf48-79498fedcc89
 This application isn't just an API wrapper; it's a complex orchestration of several local ML models working together under a unified Flet UI.
 
 1. **Morphological Analysis (NLP):** Parses raw Japanese text and lemmatizes words.
-2. **Frequency Ranking (Custom PyTorch Model):** Instead of static dictionaries, a custom trained Feed-Forward Neural Network evaluates extracted words. It concatenates FastText embeddings with morphological features (kanji/kana ratio, length) to predict word familiarity and filters out rare/unnecessary words.
+2. **Frequency Ranking (trained XGBoost regressor):** Instead of static dictionaries, a trained XGBoost regressor evaluates extracted words. It concatenates LaBSE embeddings with morphological features (kanji/kana ratio, length) to predict word familiarity and filters out rare/unnecessary words.
 3. **Word Sense Disambiguation (Ollama + Qwen):** Resolves meaning ambiguity. Uses a 4B parameter LLM (`Qwen3`) with strict Pydantic JSON schemas to select the contextually accurate translation, generate a Japanese example sentence, and create visual tags.
 4. **Image Generation (Diffusers + SDXL):** Uses `NoobAI` combined with a LoRA adapter via HuggingFace `diffusers`. Automatically renders memory-anchoring illustrations based on the LLM's visual tags.
 5. **Speech Synthesis (Style-BERT-VITS2):** Generates Japanese audio for both the target word and the example sentence. It leverages the `ku-nlp/deberta-v2` contextual language model for accurate Japanese pitch accent prediction and injects emotion embeddings (Style Vectors) for expressive playback.
