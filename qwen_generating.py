@@ -46,6 +46,6 @@ JSON STRUCTURE & CONSTRAINTS:
         }
     )
 
-    content = response['message']['content']
-    return json.loads(content)
+    card = CardOutput.model_validate_json(response['message']['content'])
+    return card.model_dump()
 
