@@ -6,7 +6,7 @@
 ![HuggingFace](https://img.shields.io/badge/HuggingFace-Diffusers-yellow.svg)
 ![VITS2](https://img.shields.io/badge/Style--BERT--VITS2-Audio-ff69b4.svg)
 
-An end-to-end, **100% local** AI pipeline that automatically extracts, ranks, and generates highly contextualized Anki flashcards from Japanese text. Built with offline LLMs, Stable Diffusion (SDXL), and a custom PyTorch frequency regressor.
+An end-to-end, **100% local** AI pipeline that automatically extracts, ranks, and generates highly contextualized Anki flashcards from Japanese text. Built with offline LLMs, Stable Diffusion (SDXL), and a custom XGBoost model predicting word familiarity.
 
 > **Note:** This project was developed as a personal portfolio piece to demonstrate applied Machine Learning, NLP, and MLOps skills. 
 
@@ -30,7 +30,7 @@ https://github.com/user-attachments/assets/822116d3-11ce-499b-bf48-79498fedcc89
 This application isn't just an API wrapper; it's a complex orchestration of several local ML models working together under a unified Flet UI.
 
 1. **Morphological Analysis (NLP):** Parses raw Japanese text and lemmatizes words.
-2. **Frequency Ranking (trained XGBoost regressor):** Instead of static dictionaries, a trained XGBoost regressor evaluates extracted words. It concatenates LaBSE embeddings with morphological features (kanji/kana ratio, length) to predict word familiarity and filters out rare/unnecessary words.
+2. **Word Familiarity Ranking (trained XGBoost regressor):** Instead of static dictionaries, a trained XGBoost regressor evaluates extracted words. It concatenates LaBSE embeddings with morphological features (word length, hiragana count and kanji count) to predict word familiarity and filters out rare/unnecessary words. Got Spearman = 0.6178 on validation and Spearman = 0.6446 on test (test_size = 25%)
 3. **Word Sense Disambiguation (Ollama + Qwen):** Resolves meaning ambiguity. Uses a 4B parameter LLM (`Qwen3`) with strict Pydantic JSON schemas to select the contextually accurate translation, generate a Japanese example sentence, and create visual tags.
 4. **Image Generation (Diffusers + SDXL):** Uses `NoobAI` combined with a LoRA adapter via HuggingFace `diffusers`. Automatically renders memory-anchoring illustrations based on the LLM's visual tags.
 5. **Speech Synthesis (Style-BERT-VITS2):** Generates Japanese audio for both the target word and the example sentence. It leverages the `ku-nlp/deberta-v2` contextual language model for accurate Japanese pitch accent prediction and injects emotion embeddings (Style Vectors) for expressive playback.
@@ -42,7 +42,7 @@ This application isn't just an API wrapper; it's a complex orchestration of seve
 
 * **Zero Cloud Dependency:** Runs entirely on local hardware. Overcame VRAM limitations by utilizing GGUF quantization for the LLM and specific GPU offloading strategies for the SDXL pipeline.
 * **Hybrid Fallback System:** Implemented a robust fallback mechanism for Out-of-Vocabulary (OOV) words. If the offline dictionary fails, the LLM dynamically shifts from a formatting role to a zero-shot translation role.
-* **Prompt Chaining & Constraint Engineering:** Solved "Small LLM Drifting" and "Attention Hijacking" by architecting a strict Task-Data-Rules prompt structure, guaranteeing 100% valid JSON outputs from a 4B model at `0.1` temperature.
+* **Prompt Chaining & Constraint Engineering:** Solved "Small LLM Drifting" and "Attention Hijacking" by architecting a strict Task-Data-Rules prompt structure, also uses Ollama’s schema-constrained output to produce structured card data.
 * **Native Deployment MLOps:** Built an interactive CLI setup script (`first_launch.py`) that dynamically fetches multi-gigabyte weights via `huggingface_hub`, handling path states and creating isolated virtual environments automatically.
  * **Sequential VRAM Orchestration:** Running an LLM (Qwen), a Diffusion model (SDXL), and a TTS architecture (VITS2) simultaneously exceeds standard consumer GPU limits (8GB VRAM). The pipeline implements strict lifecycle management: dynamically loading models, executing mixed-precision inference (`torch.amp.autocast`), and explicitly flushing memory via Python's `gc.collect()` and `torch.cuda.empty_cache()` to prevent Out-of-Memory exceptions.
 
@@ -76,8 +76,9 @@ Instead of a complex Docker setup that complicates GPU passthrough on Windows, t
 As a solo developer building an MVP, I had to make several architectural trade-offs:
 * **UI/Business Logic Coupling:** The ML pipeline orchestration are currently somewhat tightly coupled. A refactoring towards Clean Architecture (MVC/MVVM) would improve testability.
 * **Audio Generation Tuning:** While sentence-level TTS synthesis is natural thanks to BERT's contextual understanding, isolated word pronunciation occasionally suffers from pitch accent ambiguity. Future updates will involve hyperparameter tuning (noise_scale, length) or migrating to a fine-tuned dictionary-based vocoder for single-word edge cases.
-* There are also some minor issues with recognising words that are already in the user’s flashcards. But I’ve already got an idea on how to make word recognition more accurate, as well as more user-friendly
-
+* **LLM's Errors:** Due to the model's small size (only 4B parameters and 5q quantization), errors frequently occur in reading or generating sentences
+* **Problems with anki decks:** There may be issues scanning words from a deck if the card format is non-standard, or if there are multiple formats in a single deck.
+* **Other problems:** Sometimes AI generated images are not accurate; The index predicted by the XGBoost model is an approximation of a word's relevance to the learner
 ---
 
 ## ⚖️ Disclaimer & Licensing
